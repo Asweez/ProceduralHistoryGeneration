@@ -54,6 +54,7 @@ public class PersonalityGeneration {
 			public void run() {
 				World world = new World(4);
 				mDisp = new MapDisplay(world);
+				mapSelectionBox.addItemListener(mDisp);
 				mapFrame.add(mDisp, BorderLayout.CENTER);
 				mapFrame.pack();
 			}
@@ -62,7 +63,6 @@ public class PersonalityGeneration {
 		mapFrame = new JFrame("Map");
 		long time = System.currentTimeMillis();
 		mapSelectionBox = new JComboBox<String>(new String[]{"Map", "Elevation", "Temperature", "Humidity", "Iron", "Copper"});
-		mapSelectionBox.addItemListener(mDisp);
 		mapFrame.add(mapSelectionBox, BorderLayout.NORTH);
 		mapFrame.setLocation(0, 0);
 		mapFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

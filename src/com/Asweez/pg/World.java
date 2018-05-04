@@ -29,7 +29,7 @@ public class World {
 		long time = System.currentTimeMillis();
 		Random seedgen = new Random();
 		seed = seedgen.nextInt();
-//		seed = 1226077895;
+		seed = 618652525;
 		System.out.println(seed);
 		languages = new HashMap<Race, Language>();
 		for (Race r : Race.values()) {
@@ -87,7 +87,7 @@ public class World {
 		noise.SetFractalGain(0.5f);
 		noise.SetFractalLacunarity(2f);
 		noise.SetFractalOctaves(octaves);
-		noise.SetFrequency(0.008f);
+		noise.SetFrequency(0.005f);
 		double[][] toReturn = new double[width][height];
 		double max = 0;
 		double min = 0;
