@@ -1,10 +1,11 @@
 package com.Asweez.pg;
 
 import java.awt.BorderLayout;
-import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Random;
 
-import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 
@@ -62,7 +63,16 @@ public class PersonalityGeneration {
 		newThread.start();
 		mapFrame = new JFrame("Map");
 		long time = System.currentTimeMillis();
-		mapSelectionBox = new JComboBox<String>(new String[]{"Map", "Elevation", "Temperature", "Humidity", "Iron", "Copper"});
+		mapSelectionBox = new JComboBox<String>(new String[]{"Map", "Elevation", "Temperature", "Humidity", "Iron", "Copper", "Coal", "Multicolor"});
+		JButton newWorld = new JButton("Generate New");
+		newWorld.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mDisp.changeWorld(new World(4));
+			}
+		});
+		mapFrame.add(newWorld, BorderLayout.SOUTH);
 		mapFrame.add(mapSelectionBox, BorderLayout.NORTH);
 		mapFrame.setLocation(0, 0);
 		mapFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

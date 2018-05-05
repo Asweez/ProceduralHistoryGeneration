@@ -16,21 +16,21 @@ import javax.imageio.ImageIO;
 public class World {
 	public List<Empire> empires;
 	public static HashMap<Race, Language> languages;
-	public int width = Toolkit.getDefaultToolkit().getScreenSize().width;
-	public int height = 600;
+	public int width = (int) (Toolkit.getDefaultToolkit().getScreenSize().width*.75);
+	public int height = (int) (Toolkit.getDefaultToolkit().getScreenSize().height*.75);
 	public int seed;
 	public double waterLevel;
 	private int halfWidth, halfHeight;
 
-	public double[][] elevation, temp, humidity, iron, copper;
+	public double[][] elevation, temp, humidity, iron, copper, coal;
 	private final boolean exportMap = false;
 
 	public World(int numEmpires) {
 		long time = System.currentTimeMillis();
 		Random seedgen = new Random();
 		seed = seedgen.nextInt();
-		seed = 618652525;
-		System.out.println(seed);
+//		seed = 618652525;
+		System.out.println(seed + ", Width: " + width + ", Height: " + height);
 		languages = new HashMap<Race, Language>();
 		for (Race r : Race.values()) {
 			languages.put(r, new Language("C?L?V?VF?V"));
@@ -62,6 +62,7 @@ public class World {
 		humidity = generateNoiseMap(size, rand.nextInt());
 		iron = generateNoiseMap(size, rand.nextInt());
 		copper = generateNoiseMap(size, rand.nextInt());		
+		coal = generateNoiseMap(size, rand.nextInt());		
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < height; j++) {
 				//Average between random noise and hot in center
@@ -70,11 +71,16 @@ public class World {
 				int a = 3;
 				double e = elevation[i][j];
 				double d = (0.8 * (Math.pow(e, a)) / (Math.pow(e, a) + Math.pow(1 - e, a))) + 0.8;
+				//Decrease temperatures at lower elevations
 				temp[i][j] = Math.pow(temp[i][j], d);
+				//Increase humidity at lower elevations (average between that and noise)
 				humidity[i][j] += Math.pow(humidity[i][j], Math.pow(e, 2));
 				humidity[i][j] /= 2;
 				if(elevation[i][j] < waterLevel){
-					
+					humidity[i][j] = 1;
+					iron[i][j] = 0;
+					copper[i][j] = 0;
+					coal[i][j] = 0;
 				}
 			}
 		}

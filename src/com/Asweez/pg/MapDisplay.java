@@ -27,6 +27,12 @@ public class MapDisplay extends JComponent implements ItemListener {
 		width = world.width;
 		height = world.height;
 		setPreferredSize(new Dimension(width, height));
+		generateMapImage();
+	}
+
+	private BufferedImage map;
+
+	public void generateMapImage() {
 		map = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		double[][] waves = generateNoiseMap(3);
 		long time = System.currentTimeMillis();
@@ -94,11 +100,8 @@ public class MapDisplay extends JComponent implements ItemListener {
 				e.printStackTrace();
 			}
 		}
-		
 		System.out.println("Image generation took: " + (System.currentTimeMillis() - time) + "ms");
 	}
-
-	private BufferedImage map;
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
@@ -130,33 +133,49 @@ public class MapDisplay extends JComponent implements ItemListener {
 
 	@Override
 	public void paint(Graphics g) {
-		long time = System.currentTimeMillis();
 		if (currentSelection == null)
 			return;
 		BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		if (currentSelection.equals("Map")) {
 			img = map;
+		} else if(currentSelection.equals("Multicolor")){
+			int increments = 10;
+			for (int i = 0; i < width; i++) {
+				for (int j = 0; j < height; j++) {
+					img.setRGB(i, j, new Color((float) (Math.floor(world.iron[i][j] * (double) increments) / (double) increments), (float) (Math.floor(world.copper[i][j] * (double) increments) / (double) increments), (float) (Math.floor(world.coal[i][j] * (double) increments) / (double) increments)).getRGB());
+				}
+			}
 		} else {
+			Color c1 = Color.black;
+			Color c2 = Color.white;
+			int increments = 8;
 			double[][] data = new double[width][height];
 			if (currentSelection.equals("Elevation")) {
 				data = world.elevation;
 			} else if (currentSelection.equals("Temperature")) {
+				increments = 10;
+				c1 = Color.blue;
+				c2 = Color.red;
 				data = world.temp;
 			} else if (currentSelection.equals("Humidity")) {
+				c1 = Color.white;
+				c2 = Color.green;
 				data = world.humidity;
 			} else if (currentSelection.equals("Iron")) {
 				data = world.iron;
 			} else if (currentSelection.equals("Copper")) {
+				c2 = new Color(0.8f, 0.5f, 0);
 				data = world.copper;
+			} else if (currentSelection.equals("Coal")) {
+				data = world.coal;
 			}
 			for (int i = 0; i < width; i++) {
 				for (int j = 0; j < height; j++) {
-					img.setRGB(i, j, new Color((float) data[i][j], (float) data[i][j], (float) data[i][j]).getRGB());
+					img.setRGB(i, j, clerp(c1, c2, (float) (Math.floor(data[i][j] * (double) increments) / (double) increments)).getRGB());
 				}
 			}
 		}
 		g.drawImage(img, 0, 0, null);
-		System.out.println("Painting took: " + (System.currentTimeMillis() - time) + "ms");
 	}
 
 	public static Color clerp(Color c1, Color c2, float f) {
@@ -203,6 +222,12 @@ public class MapDisplay extends JComponent implements ItemListener {
 			}
 		}
 		return toReturn;
+	}
+
+	public void changeWorld(World newWorld) {
+		world = newWorld;
+		generateMapImage();
+		repaint();
 	}
 
 }
