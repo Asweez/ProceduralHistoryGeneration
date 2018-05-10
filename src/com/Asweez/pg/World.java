@@ -1,35 +1,31 @@
 package com.Asweez.pg;
 
-import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-import javax.imageio.ImageIO;
-
 public class World {
 	public List<Empire> empires;
 	public static HashMap<Race, Language> languages;
-	public int width = (int) (Toolkit.getDefaultToolkit().getScreenSize().width*.75);
-	public int height = (int) (Toolkit.getDefaultToolkit().getScreenSize().height*.75);
+	public int width = 1600;
+	public int height = 800;
 	public int seed;
 	public double waterLevel;
 	private int halfWidth, halfHeight;
+	//7 0 1
+	//6   2
+	//5 4 3
+	private int windDirection;
 
-	public double[][] elevation, temp, humidity, iron, copper, coal;
+	public double[][] elevation, temp, humidity, iron, copper, coal, trees;
 	private final boolean exportMap = false;
 
 	public World(int numEmpires) {
 		long time = System.currentTimeMillis();
 		Random seedgen = new Random();
 		seed = seedgen.nextInt();
-//		seed = 618652525;
 		System.out.println(seed + ", Width: " + width + ", Height: " + height);
 		languages = new HashMap<Race, Language>();
 		for (Race r : Race.values()) {
@@ -56,26 +52,31 @@ public class World {
 		}
 		Random rand = new Random(seed);
 		//Randomize waterLevel
-		waterLevel = (rand.nextDouble() * 0.2) + 0.08f;
+		waterLevel = (rand.nextDouble() * 0.3) + 0.06f;
+		waterLevel = 0.3;
+		windDirection = rand.nextInt(8);
 		int size = 9;
 		temp = generateNoiseMap(size, rand.nextInt());
 		humidity = generateNoiseMap(size, rand.nextInt());
 		iron = generateNoiseMap(size, rand.nextInt());
 		copper = generateNoiseMap(size, rand.nextInt());		
 		coal = generateNoiseMap(size, rand.nextInt());		
+		
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < height; j++) {
 				//Average between random noise and hot in center
-				temp[i][j] += 1 * (1 - Math.abs((double) (j - (height / 2)) / (height/2)));
-				temp[i][j] /= 2;
-				int a = 3;
+				temp[i][j] += 3 * (1 - Math.abs((double) (j - (height / 2)) / (height/2)));
+				temp[i][j] /= 4;
+				int a = 4;
 				double e = elevation[i][j];
-				double d = (0.8 * (Math.pow(e, a)) / (Math.pow(e, a) + Math.pow(1 - e, a))) + 0.8;
-				//Decrease temperatures at lower elevations
+				double e1 = e - 0.1;
+				double d = (1.5 * (Math.pow(e1, a)) / (Math.pow(e1, a) + Math.pow(1 - e1, a))) + 0.8;
+				//Decrease temperatures at higher elevations
 				temp[i][j] = Math.pow(temp[i][j], d);
-				//Increase humidity at lower elevations (average between that and noise)
-				humidity[i][j] += Math.pow(humidity[i][j], Math.pow(e, 2));
-				humidity[i][j] /= 2;
+				//Increase humidity at higher temperatures (average between that and noise)
+				double h = humidity[i][j];
+				double a1 = 1.5;
+				humidity[i][j] = Math.min(1, 1.75*h) * temp[i][j];
 				if(elevation[i][j] < waterLevel){
 					humidity[i][j] = 1;
 					iron[i][j] = 0;
@@ -84,7 +85,46 @@ public class World {
 				}
 			}
 		}
+		//Left part of moisture "wave"
+//		for(int i = 0; i < height; i++){
+//			for(int j = 0; j < height - i; j++){
+//				if(i == 0){
+//					humidity[i][i+j] = 1;
+//				}else{
+//					if(elevation[i][i+j] < waterLevel){
+//						humidity[i][i+j] += 0.01f;
+//						if(humidity[i][i+j] > 1){
+//							humidity[i][j + i] = 1;
+//						}
+//					}else{
+//						humidity[i][i+j] = adjustMoisture(i, i+j);
+//					}
+//				}
+//			}
+//		}
+//		for(int j = 0; j < height; j++){
+//			for(int i = 0; i < width - j; i++){
+//				if(j == 0){
+//					humidity[i+j][j] = 1;
+//				}else{
+//					if(elevation[i+j][j] < waterLevel){
+//						humidity[i+j][j] += 0.01f;
+//						if(humidity[i+j][j] > 1){
+//							humidity[i+j][j] = 1;
+//						}
+//					}else{
+//						humidity[i+j][j] = adjustMoisture(j+i, j);
+//					}
+//				}
+//			}
+//		}
 		System.out.println("World generation took: " + (System.currentTimeMillis() - time) + "ms");
+	}
+	
+	private double adjustMoisture(int x, int y){
+		double lastHumidity = humidity[x - 1][y - 1];
+		double thisHumidity = lastHumidity - Math.pow(elevation[x][y], 6);
+		return Math.max(0, thisHumidity);
 	}
 	
 	public double[][] generateNoiseMap(int octaves, int seed) {
@@ -122,5 +162,25 @@ public class World {
 			}
 		}
 		return toReturn;
+	}
+	
+	public static Biome[][] biomeTable = new Biome[][]{
+		{Biome.TUNDRA, Biome.TAIGA, Biome.GRASSLAND, Biome.DESERT, Biome.DESERT},
+		{Biome.EMPTY, Biome.GRASSLAND, Biome.GRASSLAND, Biome.GRASSLAND, Biome.DESERT},
+		{Biome.EMPTY, Biome.EMPTY, Biome.TEMPERATE_FOREST, Biome.TEMPERATE_FOREST, Biome.SAVANNA},
+		{Biome.EMPTY, Biome.EMPTY, Biome.EMPTY, Biome.TROPICAL_RAINFOREST, Biome.TROPICAL_RAINFOREST},
+		{Biome.EMPTY, Biome.EMPTY, Biome.EMPTY, Biome.EMPTY, Biome.TROPICAL_RAINFOREST}
+	};
+	
+	public Biome getBiome(int x, int y){
+		double e = elevation[x][y];
+		if(e < waterLevel){
+			return Biome.OCEAN;
+		}else if(e > 0.9){
+			return Biome.MOUNTAIN;
+		}else if(e > 0.95){
+			return Biome.ICE;
+		}
+		return biomeTable[(int) Math.floor(humidity[x][y] / 0.2)][(int) Math.floor(temp[x][y] / 0.2)];
 	}
 }

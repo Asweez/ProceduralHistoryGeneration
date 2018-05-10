@@ -19,14 +19,17 @@ public class MapDisplay extends JComponent implements ItemListener {
 	private World world;
 	public int width;
 	public int height;
+	private double scale = 1f;
 	private final boolean shade = true;
 	private final boolean exportMap = false;
 
-	public MapDisplay(World world) {
+	public MapDisplay(World world, int width, int height) {
 		this.world = world;
-		width = world.width;
-		height = world.height;
-		setPreferredSize(new Dimension(width, height));
+		this.width = width;
+		this.height = height;
+		scale = Math.min((double) width / (double) world.width, (double) height / (double) world.height);
+		scale = 1/scale;
+		setPreferredSize(new Dimension((int)(world.width/scale), (int)(world.height/scale)));
 		generateMapImage();
 	}
 
@@ -41,12 +44,12 @@ public class MapDisplay extends JComponent implements ItemListener {
 			boolean isOcean = true;
 
 			for (int j = 0; j < height; j++) {
-				double hum = world.humidity[i][j];
-				double temp = world.temp[i][j];
-				double terrain = world.elevation[i][j];
-				int temperature = temp < 0.2 ? 0 : (temp < 0.4 ? 1 : (temp < 0.6 ? 2 : (temp < 0.8 ? 3 : 4)));
-				int humidity = hum < 0.2 ? 0 : (hum < 0.4 ? 1 : (hum < 0.6 ? 2 : (hum < 0.8 ? 3 : 4)));
-				Color c = biomeTable[humidity][temperature];
+				try{
+				double hum = world.humidity[(int) (scale*i)][(int) (scale*j)];
+				double temp = world.temp[(int) (scale*i)][(int) (scale*j)];
+				double terrain = world.elevation[(int) (scale*i)][(int) (scale*j)];
+				Biome b = world.getBiome((int) (scale*i), (int) (scale*j));
+				Color c = b.biomeColor;
 				if (terrain > 0.9f) {
 					c = polar;
 				} else if (terrain > 0.75f) {
@@ -58,13 +61,13 @@ public class MapDisplay extends JComponent implements ItemListener {
 				// c = clerp(Color.blue, Color.red,
 				// (float)Math.floor(height/0.143)/7f);
 				if (shade) {
-					if (c.equals(ocean) && isOcean) {
+					if (b == Biome.OCEAN && isOcean) {
 						if (waves[(int) i / 5][j] / 10 >= maxHeight) {
 							maxHeight = waves[(int) i / 5][j] / 10;
 							isOcean = true;
 							map.setRGB(i, j, clerp(c, Color.white, (float) (Math.pow(maxHeight, 1.5) * 10)).getRGB());
 						} else {
-							maxHeight -= 0.01f;
+							maxHeight -= 0.004f * scale;
 							if (maxHeight < 0) {
 								maxHeight = 0f;
 							}
@@ -80,7 +83,7 @@ public class MapDisplay extends JComponent implements ItemListener {
 					isOcean = false;
 					map.setRGB(i, j, c.getRGB());
 				} else {
-					maxHeight -= 0.004f;
+					maxHeight -= 0.004f * scale;
 					if (maxHeight < 0) {
 						maxHeight = 0f;
 					}
@@ -88,6 +91,9 @@ public class MapDisplay extends JComponent implements ItemListener {
 						isOcean = true;
 					}
 					map.setRGB(i, j, clerp(c, Color.black, (c.equals(polar) ? 0.2f : 0.4f)).getRGB());
+				}
+				}catch(ArrayIndexOutOfBoundsException e){
+					
 				}
 			}
 		}
@@ -122,15 +128,6 @@ public class MapDisplay extends JComponent implements ItemListener {
 	public static Color tundra = new Color(0.7f, 1f, 1f);
 	public static Color taiga = new Color(0, 0.6f, 0.6f);
 
-	public static Color[][] biomeTable = new Color[][] {
-			// Temperature
-			{ forest, temperateForest, grass, grass, desert }, // Dry
-			{ forest, temperateForest, temperateForest, grass, desert }, // Dryish
-			{ forest, forest, forest, grass, desert }, // Wettish
-			{ polar, taiga, temperateForest, grass, desert }, // Wet
-			{ polar, mountain, taiga, forest, desert },// Wetter
-	};
-
 	@Override
 	public void paint(Graphics g) {
 		if (currentSelection == null)
@@ -138,8 +135,8 @@ public class MapDisplay extends JComponent implements ItemListener {
 		BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		if (currentSelection.equals("Map")) {
 			img = map;
-		} else if(currentSelection.equals("Multicolor")){
-			int increments = 10;
+		} else if (currentSelection.equals("Multicolor")) {
+			int increments = 20;
 			for (int i = 0; i < width; i++) {
 				for (int j = 0; j < height; j++) {
 					img.setRGB(i, j, new Color((float) (Math.floor(world.iron[i][j] * (double) increments) / (double) increments), (float) (Math.floor(world.copper[i][j] * (double) increments) / (double) increments), (float) (Math.floor(world.coal[i][j] * (double) increments) / (double) increments)).getRGB());
@@ -158,7 +155,7 @@ public class MapDisplay extends JComponent implements ItemListener {
 				c2 = Color.red;
 				data = world.temp;
 			} else if (currentSelection.equals("Humidity")) {
-				c1 = Color.white;
+				c1 = Color.black;
 				c2 = Color.green;
 				data = world.humidity;
 			} else if (currentSelection.equals("Iron")) {
@@ -194,7 +191,7 @@ public class MapDisplay extends JComponent implements ItemListener {
 		noise.SetFractalLacunarity(2f);
 		noise.SetFractalOctaves(octaves);
 		noise.SetFrequency(0.1f);
-		double[][] toReturn = new double[width][height];
+		double[][] toReturn = new double[world.width][world.height];
 		double max = 0;
 		double min = 0;
 		for (int i = 0; i < width; i++) {
