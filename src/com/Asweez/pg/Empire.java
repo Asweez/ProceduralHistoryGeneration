@@ -25,14 +25,14 @@ public class Empire {
 		language = w.languages.get(race);
 		name = language.getCityName();
 		populace = new ArrayList<SignificantPerson>();
-		Random rand = new Random();
-		for (int i = 0; i < 20; i++) {
-			populace.add(new SignificantPerson(rand.nextInt(6) == 0 ? Race.getRandom() : r, this));
-		}
-		populace.sort(new PersonComparator());
-		buildings  = new ArrayList<Building>();
-		findLeader();
-		findPlaceToSettle();
+//		Random rand = new Random();
+//		for (int i = 0; i < 20; i++) {
+//			populace.add(new SignificantPerson(rand.nextInt(6) == 0 ? Race.getRandom() : r, this));
+//		}
+//		populace.sort(new PersonComparator());
+//		buildings  = new ArrayList<Building>();
+//		findLeader();
+//		findPlaceToSettle();
 	}
 
 	public void findPlaceToSettle() {

@@ -13,7 +13,7 @@ public class SignificantPerson extends Person{
 	public Job job;
 	
 	public SignificantPerson(Person p){
-		super(p.name, p.race, p.empire);
+		super();
 		world = p.empire.world;
 		personality = new float[6];
 		for(int i = 0; i < 6; i++){
@@ -25,7 +25,7 @@ public class SignificantPerson extends Person{
 	}
 	
 	public SignificantPerson(Race r, Empire e){
-		this(new Person(e.world.languages.get(r).getWholeName(), r, e));
+		this(new Person());
 	}
 
 	public void tweakPersonalityFromTraits(){

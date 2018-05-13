@@ -19,7 +19,7 @@ public class BuildingFarm extends Building {
 				System.out.println("Farm Ready");
 				timeTilHarvest = 10;
 				isReadyToHarvest = true;
-				owner.states.add(State.FARM_READY);
+//				owner.states.add(State.FARM_READY);
 			}
 		}
 	}

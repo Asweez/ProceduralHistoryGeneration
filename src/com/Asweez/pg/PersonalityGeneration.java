@@ -1,14 +1,10 @@
 package com.Asweez.pg;
 
-import java.util.Collections;
 import java.util.Random;
 
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
-
-import com.Asweez.pg.EmpireActionManager.Action;
-import com.Asweez.pg.EmpireActionManager.StateVisit;
 
 public class PersonalityGeneration {
 	//Using "BASIC-G" outline
@@ -56,16 +52,15 @@ public class PersonalityGeneration {
 //			}
 //		}
 //		System.out.println("OVERALL: " + (System.currentTimeMillis() - time1) + "ms");
-		World w = new World(4);
-		Person p = new Person("Joe", w.empires.get(0).race, w.empires.get(0));
-		for(int i = 0; i < 100; i++){
-			System.out.println("Turn " + turnCounter + ": ");
-			for(Building b : p.buildings){
-				b.onTurn();
-			}
-			p.onTurn();
-			turnCounter++;
-		}
+		Person p = new Person();
+//		for(int i = 0; i < 100; i++){
+//			System.out.println("Turn " + turnCounter + ": ");
+//			for(Building b : p.buildings){
+//				b.onTurn();
+//			}
+//			p.onTurn();
+//			turnCounter++;
+//		}
 	}
 	
 	public static void finishWorldGen(){
