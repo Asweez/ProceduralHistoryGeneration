@@ -8,11 +8,11 @@ import javax.swing.JComponent;
 
 public class PersonalityDisplay extends JComponent{
 
-	public Person p;
+	public SignificantPerson p;
 	public String[] labels = new String[]{"Bravery", "Agressiveness", "Strength", "Intelligence", "Charisma", "Greed"};
 	public Color[] colors = new Color[]{new Color(1f, 0.8f, 0), Color.red, Color.BLUE, Color.GREEN, Color.MAGENTA, Color.DARK_GRAY};
 	
-	public PersonalityDisplay(Person p){
+	public PersonalityDisplay(SignificantPerson p){
 		this.p = p;
 	}
 	
@@ -78,7 +78,7 @@ public class PersonalityDisplay extends JComponent{
 		return randomColor(seed, 1);
 	}
 	
-	public void changePerson(Person p){
+	public void changePerson(SignificantPerson p){
 		this.p = p;
 		repaint();
 	}

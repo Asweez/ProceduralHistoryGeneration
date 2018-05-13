@@ -1,81 +1,90 @@
 package com.Asweez.pg;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
+
+import com.Asweez.pg.EmpireActionManager.Action;
+import com.Asweez.pg.EmpireActionManager.StateVisit;
 
 public class Person {
-	public float[] personality;
 	public String name;
 	public Race race;
-	public List<Trait> traits;
 	public Empire empire;
-	public World world;
-	
-	public int wealth;
-	public Job job;
-	public float happiness;
-	
-	private static Random rand = new Random();
-	
-	public Person(Race r, Empire e){
-		this.race = r;
-		empire = e;
-		world = e.world;
-		this.name = world.languages.get(race).getWholeName();
-		personality = new float[6];
-		for(int i = 0; i < 6; i++){
-			float baseValue = rand.nextFloat();
-			float modifiedValue = (float) Math.pow(baseValue, 1f/race.modifiers[i]);
-			personality[i] = modifiedValue;
-		}
-		traits = new ArrayList<Trait>();
-		if(rand.nextBoolean()){
-			traits.add(Trait.values()[rand.nextInt(Trait.values().length)]);
-			tweakPersonalityFromTraits();
+	public int wealth = 10;
+	public double hunger = 0;
+	public double happiness = 0.5;
+	// Farming, Hunting, Mining, Trading, Butchering, Combat, Sailing, Crafting,
+	// Deception, Science, Healing
+	public double[] skills = new double[11];
+	public List<Building> buildings;
+	public List<State> states;
+	public List<Action> actions;
+	public List<State> goals;
+
+	public Person(String name, Race race, Empire empire) {
+		this.name = name;
+		this.race = race;
+		this.empire = empire;
+		this.buildings = new ArrayList<Building>();
+		this.actions = new ArrayList<Action>();
+		this.goals = new ArrayList<State>();
+		this.states = new ArrayList<State>();
+		for (int i = 0; i < skills.length; i++) {
+			skills[i] = World.rand.nextDouble();
 		}
 	}
 
-	public void tweakPersonalityFromTraits(){
-		for(Trait t : traits){
-			switch(t){
-			case ALTRUISTIC:
-				personality[5] = (float) Math.pow(personality[5], 3);
-				break;
-			case CONFIDENT:
-				personality[0] = (float) Math.pow(personality[0], 0.3);
-				break;
-			case STRONGARMED:
-				personality[2] = (float) Math.pow(personality[2], 0.3);
-				break;
-			case GEEK:
-				personality[3] = (float) Math.pow(personality[3], 0.3);
-				personality[4] = (float) Math.pow(personality[4], 3);
-				break;
-			case PEACEFUL:
-				personality[1] = (float) Math.pow(personality[1], 3);
-				break;
-			case INTROVERT:
-				personality[4] = (float) Math.pow(personality[4], 3);
-				break;
-			case EXTROVERT:
-				personality[4] = (float) Math.pow(personality[4], 0.3);
-				break;
-			case MUSICIAN:
-				personality[4] = (float) Math.pow(personality[4], 0.3);
-				break;
-			case SELFISH:
-				personality[5] = (float) Math.pow(personality[5], 0.3);
+	public void onTurn() {
+		hunger -= 0.2f;
+		if (hunger <= 0f && !goals.contains(State.NOT_HUNGRY)) {
+			hunger = 0;
+			states.remove(State.NOT_HUNGRY);
+			goals.add(State.NOT_HUNGRY);
+			StateVisit path = EmpireActionManager.getToState(State.NOT_HUNGRY, this);
+			if (path != null) {
+				List<Action> newActions = path.visitedActions;
+				Collections.reverse(newActions);
+				actions.addAll(newActions);
+			}
+		}
+		if (actions.size() > 0) {
+			if (actions.get(0).canDoAction(this) && 
+					(states.containsAll(Arrays.asList(actions.get(0).prerequisiteStates())) || actions.get(0).prerequisiteStates().length == 0)) {
+				Action a = actions.remove(0);
+				System.out.println(a);
+				a.doAction(this);
+			}else{
+				actions.clear();
+				StateVisit path = EmpireActionManager.getToState(State.NOT_HUNGRY, this);
+				if (path != null) {
+					List<Action> newActions = path.visitedActions;
+					Collections.reverse(newActions);
+					actions.addAll(newActions);
+				}
+				Action a = actions.remove(0);
+				System.out.println(a);
+				a.doAction(this);
+			}
+		}
+		Iterator<State> iter = goals.iterator();
+		while (iter.hasNext()) {
+			State s = iter.next();
+			if (states.contains(s)) {
+				iter.remove();
+			}
+		}
+		for(Building b : buildings){
+			if(b instanceof BuildingFarm && !states.contains(State.HAS_FARM)){
+				states.add(State.HAS_FARM);
 				break;
 			}
 		}
 	}
-	
-	public void processYear(){
-		wealth += job.wealthPerYear;
-	}
-	
-	public String toString(){
+
+	public String toString() {
 		return name;
 	}
 }

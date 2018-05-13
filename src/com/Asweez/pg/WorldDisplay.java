@@ -43,8 +43,13 @@ public class WorldDisplay extends JComponent implements ListSelectionListener{
 	@Override
 	public void valueChanged(ListSelectionEvent e) {
 		PersonalityGeneration.eDisp.e = empireList.getSelectedValue();
-		PersonalityGeneration.eDisp.list.setListData(empireList.getSelectedValue().populace.toArray(new Person[empireList.getSelectedValue().populace.size()]));
+		PersonalityGeneration.eDisp.list.setListData(empireList.getSelectedValue().populace.toArray(new SignificantPerson[empireList.getSelectedValue().populace.size()]));
 		PersonalityGeneration.empireFrame.revalidate();
 		PersonalityGeneration.empireFrame.repaint();
+		PersonalityGeneration.mapFrame.repaint();
+	}
+	
+	public Empire getSelectedEmpire(){
+		return empireList.getSelectedValue();
 	}
 }

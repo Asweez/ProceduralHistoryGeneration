@@ -50,14 +50,6 @@ public class MapDisplay extends JComponent implements ItemListener {
 				double terrain = world.elevation[(int) (scale*i)][(int) (scale*j)];
 				Biome b = world.getBiome((int) (scale*i), (int) (scale*j));
 				Color c = b.biomeColor;
-				if (terrain > 0.9f) {
-					c = polar;
-				} else if (terrain > 0.75f) {
-					c = mountain;
-				} else if (terrain < world.waterLevel) {
-					c = ocean;
-					terrain = world.waterLevel;
-				}
 				// c = clerp(Color.blue, Color.red,
 				// (float)Math.floor(height/0.143)/7f);
 				if (shade) {
@@ -90,7 +82,7 @@ public class MapDisplay extends JComponent implements ItemListener {
 					if (maxHeight < world.waterLevel) {
 						isOcean = true;
 					}
-					map.setRGB(i, j, clerp(c, Color.black, (c.equals(polar) ? 0.2f : 0.4f)).getRGB());
+					map.setRGB(i, j, clerp(c, Color.black, (b == Biome.ICE ? 0.2f : 0.4f)).getRGB());
 				}
 				}catch(ArrayIndexOutOfBoundsException e){
 					
@@ -115,19 +107,6 @@ public class MapDisplay extends JComponent implements ItemListener {
 		repaint();
 	}
 
-	public static Color desert = new Color(0.8455f, 0.765f, 0.1402f);
-	public static Color beach = new Color(1f, 0.8f, 0.48f);
-	public static Color savanna = new Color(1f, 0.56f, 0.36f);
-	public static Color grass = Color.green;
-	public static Color forest = new Color(0, 0.6f, 0);
-	public static Color temperateForest = new Color(0.5f, 0.7f, 0);
-	public static Color mountain = Color.gray;
-	public static Color ocean = Color.blue;
-	public static Color deepOcean = new Color(0, 0, 0.8f);
-	public static Color polar = new Color(1f, 1f, 1f);
-	public static Color tundra = new Color(0.7f, 1f, 1f);
-	public static Color taiga = new Color(0, 0.6f, 0.6f);
-
 	@Override
 	public void paint(Graphics g) {
 		if (currentSelection == null)
@@ -139,7 +118,7 @@ public class MapDisplay extends JComponent implements ItemListener {
 			int increments = 20;
 			for (int i = 0; i < width; i++) {
 				for (int j = 0; j < height; j++) {
-					img.setRGB(i, j, new Color((float) (Math.floor(world.iron[i][j] * (double) increments) / (double) increments), (float) (Math.floor(world.copper[i][j] * (double) increments) / (double) increments), (float) (Math.floor(world.coal[i][j] * (double) increments) / (double) increments)).getRGB());
+					img.setRGB(i, j, new Color((float) (Math.floor(world.iron[(int) (i*scale)][(int)(j*scale)] * (double) increments) / (double) increments), (float) (Math.floor(world.copper[(int) (i*scale)][(int)(j*scale)] * (double) increments) / (double) increments), (float) (Math.floor(world.coal[(int) (i*scale)][(int)(j*scale)] * (double) increments) / (double) increments)).getRGB());
 				}
 			}
 		} else {
@@ -168,11 +147,16 @@ public class MapDisplay extends JComponent implements ItemListener {
 			}
 			for (int i = 0; i < width; i++) {
 				for (int j = 0; j < height; j++) {
-					img.setRGB(i, j, clerp(c1, c2, (float) (Math.floor(data[i][j] * (double) increments) / (double) increments)).getRGB());
+					img.setRGB(i, j, clerp(c1, c2, (float) (Math.floor(data[(int) (i*scale)][(int)(j*scale)] * (double) increments) / (double) increments)).getRGB());
 				}
 			}
 		}
 		g.drawImage(img, 0, 0, null);
+		if(PersonalityGeneration.wDisp != null && PersonalityGeneration.wDisp.getSelectedEmpire() != null){
+			Coordinate c = PersonalityGeneration.wDisp.getSelectedEmpire().location.scale(1/scale);
+			g.setColor(Color.red);
+			g.fillOval(c.x - 5, c.y - 5, 10, 10);
+		}
 	}
 
 	public static Color clerp(Color c1, Color c2, float f) {

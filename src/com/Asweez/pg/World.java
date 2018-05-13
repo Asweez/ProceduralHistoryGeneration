@@ -1,6 +1,5 @@
 package com.Asweez.pg;
 
-import java.awt.Toolkit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,9 +7,9 @@ import java.util.Random;
 
 public class World {
 	public List<Empire> empires;
-	public static HashMap<Race, Language> languages;
-	public int width = 1600;
-	public int height = 800;
+	public HashMap<Race, Language> languages;
+	public int width = 300;
+	public int height = 300;
 	public int seed;
 	public double waterLevel;
 	private int halfWidth, halfHeight;
@@ -18,6 +17,7 @@ public class World {
 	//6   2
 	//5 4 3
 	private int windDirection;
+	public static Random rand;
 
 	public double[][] elevation, temp, humidity, iron, copper, coal, trees;
 	private final boolean exportMap = false;
@@ -33,11 +33,6 @@ public class World {
 		}
 		halfWidth = (int) (width / 2);
 		halfHeight = (int) (height / 2);
-
-		empires = new ArrayList<Empire>(numEmpires);
-		for (int i = 0; i < numEmpires; i++) {
-			empires.add(new Empire(Race.getRandom(), this));
-		}
 		elevation = generateNoiseMap(16, seed);
 		//Make island, tweak elevation (weighted sum of squared elevation)
 		for (int i = 0; i < width; i++) {
@@ -50,7 +45,7 @@ public class World {
 				elevation[i][j] = Math.max(0, elevation[i][j] - Math.pow(distance, 4));
 			}
 		}
-		Random rand = new Random(seed);
+		rand = new Random(seed);
 		//Randomize waterLevel
 		waterLevel = (rand.nextDouble() * 0.3) + 0.06f;
 		waterLevel = 0.3;
@@ -85,40 +80,11 @@ public class World {
 				}
 			}
 		}
-		//Left part of moisture "wave"
-//		for(int i = 0; i < height; i++){
-//			for(int j = 0; j < height - i; j++){
-//				if(i == 0){
-//					humidity[i][i+j] = 1;
-//				}else{
-//					if(elevation[i][i+j] < waterLevel){
-//						humidity[i][i+j] += 0.01f;
-//						if(humidity[i][i+j] > 1){
-//							humidity[i][j + i] = 1;
-//						}
-//					}else{
-//						humidity[i][i+j] = adjustMoisture(i, i+j);
-//					}
-//				}
-//			}
-//		}
-//		for(int j = 0; j < height; j++){
-//			for(int i = 0; i < width - j; i++){
-//				if(j == 0){
-//					humidity[i+j][j] = 1;
-//				}else{
-//					if(elevation[i+j][j] < waterLevel){
-//						humidity[i+j][j] += 0.01f;
-//						if(humidity[i+j][j] > 1){
-//							humidity[i+j][j] = 1;
-//						}
-//					}else{
-//						humidity[i+j][j] = adjustMoisture(j+i, j);
-//					}
-//				}
-//			}
-//		}
 		System.out.println("World generation took: " + (System.currentTimeMillis() - time) + "ms");
+		empires = new ArrayList<Empire>(numEmpires);
+		for (int i = 0; i < numEmpires; i++) {
+			empires.add(new Empire(Race.getRandom(), this));
+		}
 	}
 	
 	private double adjustMoisture(int x, int y){
@@ -177,10 +143,30 @@ public class World {
 		if(e < waterLevel){
 			return Biome.OCEAN;
 		}else if(e > 0.9){
-			return Biome.MOUNTAIN;
-		}else if(e > 0.95){
 			return Biome.ICE;
+		}else if(e > 0.75){
+			return Biome.MOUNTAIN;
 		}
 		return biomeTable[(int) Math.floor(humidity[x][y] / 0.2)][(int) Math.floor(temp[x][y] / 0.2)];
+	}
+	
+	public Coordinate getRandomCoordinate(){
+		return new Coordinate(rand.nextInt(width), rand.nextInt(height));
+	}
+	
+	public Coordinate getRandomLandCoordinate(){
+		Coordinate c = getRandomCoordinate();
+		while(elevation[c.x][c.y] < waterLevel){
+			c = getRandomCoordinate();
+		}
+		return c;
+	}
+	
+	public boolean isCoordinateValid(Coordinate c){
+		return c.x >= 0 && c.y >= 0 && c.x < width && c.y < height;
+	}
+	
+	public boolean isLand(Coordinate c){
+		return elevation[c.x][c.y] >= waterLevel;
 	}
 }

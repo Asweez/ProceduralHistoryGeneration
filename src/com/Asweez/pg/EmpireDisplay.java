@@ -22,7 +22,7 @@ public class EmpireDisplay extends JComponent implements MouseListener, ListSele
 		addMouseListener(this);
 		
 		
-		list = new JList<Person>(e.populace.toArray(new Person[e.populace.size()]));
+		list = new JList<SignificantPerson>(e.populace.toArray(new SignificantPerson[e.populace.size()]));
 		list.addListSelectionListener(this);
 		scrollpane = new JScrollPane(list);
 		add(scrollpane);
@@ -37,7 +37,7 @@ public class EmpireDisplay extends JComponent implements MouseListener, ListSele
 	Font normal = new Font("Times New Roman", Font.PLAIN, 15);
 	
 	private JScrollPane scrollpane;
-	public JList<Person> list;
+	public JList<SignificantPerson> list;
 	
 	@Override
 	public void paint(Graphics g) {
